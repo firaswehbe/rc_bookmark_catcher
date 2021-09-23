@@ -1,9 +1,11 @@
 # This file may be used to create an environment using:
 # $ conda create --name <env> --file <this file>
 # platform: osx-64
+bootstrap-flask=1.8.0=pypi_0
 ca-certificates=2021.7.5=hecd8cb5_1
 certifi=2021.5.30=py39hecd8cb5_0
 click=8.0.1=pypi_0
+dominate=2.6.0=pypi_0
 flask=2.0.1=pypi_0
 itsdangerous=2.0.1=pypi_0
 jinja2=3.0.1=pypi_0
@@ -19,6 +21,7 @@ setuptools=58.0.4=py39hecd8cb5_0
 sqlite=3.36.0=hce871da_0
 tk=8.6.10=hb0a8c7a_0
 tzdata=2021a=h5d7bf9c_0
+visitor=0.1.3=pypi_0
 werkzeug=2.0.1=pypi_0
 wheel=0.37.0=pyhd3eb1b0_1
 xz=5.2.5=h1de35cc_0
