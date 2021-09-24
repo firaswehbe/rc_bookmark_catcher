@@ -15,9 +15,15 @@
         {% endblock %}
     </head>
     <body>
+        <!-- Navigation Bar -->
+        {% from 'bootstrap/nav.html' import render_nav_item %}
+
+        <nav class="navbar navbar-dark bg-dark">
+            <span class="navbar-brand">NeuroFiles</span>
+        </nav>  
+
         <!-- Your page content -->
         {% block content %}
-        <p>Blah</p>
         {% endblock %}
 
         {% block scripts %}
