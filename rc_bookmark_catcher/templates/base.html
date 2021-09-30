@@ -22,6 +22,9 @@
             <a class="navbar-brand" href="/">NeuroFiles</a>
         </nav>  
 
+        {% from 'bootstrap/utils.html' import render_messages %}
+        {{ render_messages() }}
+
         <!-- Your page content -->
         {% block content %}
         <h1>NeuroFiles - HOV Lookup</h1>
