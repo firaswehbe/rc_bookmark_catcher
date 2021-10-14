@@ -10,7 +10,7 @@ def create_app(test_config=None):
     
     app.config.from_mapping(
         SECRET_KEY='dev',
-        SQLALCHEMY_DATABASE_URI='postgresql://rcbc@localhost/rcbc',
+        SQLALCHEMY_DATABASE_URI='postgresql://localhost/rcbc',
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         LOGGING_LEVEL='DEBUG'
     )
