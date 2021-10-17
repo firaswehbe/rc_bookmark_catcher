@@ -38,10 +38,3 @@ class Field(db.Model):
     __table_args__ = ( 
         db.ForeignKeyConstraint(['project_id', 'form_name'], [Instrument.project_id,Instrument.instrument_name]),
     )
-
-
-def create_all():
-    db.create_all()
-
-def drop_all():
-    db.drop_all()

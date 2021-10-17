@@ -1,5 +1,6 @@
 import os
-from flask import Flask, render_template, request, flash
+import click
+from flask import Flask, render_template, request, flash, current_app
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 
@@ -25,14 +26,25 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    Bootstrap(app)
+    db.init_app(app)
+
     @app.route("/")
     def index():
         if request.args.get('pid') is None:
             flash("A valid project id is required for this page")
         return render_template('base.html')
     
-    Bootstrap(app)
-    db.init_app(app)
+    @app.cli.command('dropdb')
+    def dropdb():
+        from rc_bookmark_catcher import models
+        click.echo('Dropping Database...')
+        db.drop_all()
+
+    @app.cli.command('initdb')
+    def initdb():
+        from rc_bookmark_catcher import models
+        click.echo('Initializing Database...')
+        db.create_all()
 
     return app
-
