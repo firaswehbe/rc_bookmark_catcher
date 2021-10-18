@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Imported Projects</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">pid</th>
+            <th scope="col">title</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for project in projects %}
+        <tr>
+            <td>{{ project.project_id }}</td>
+            <td>{{ project.project_title }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

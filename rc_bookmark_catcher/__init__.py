@@ -31,9 +31,17 @@ def create_app(test_config=None):
 
     @app.route("/")
     def index():
-        if request.args.get('pid') is None:
-            flash("A valid project id is required for this page")
-        return render_template('base.html')
+        projects = [
+            {
+                'project_id': 1234,
+                'project_title': 'Hello World v1'
+            },
+            {
+                'project_id': 3453,
+                'project_title': 'Hello COSMOS v2'
+            }
+        ]
+        return render_template('home.html', projects=projects)
     
     @app.cli.command('dropdb')
     def dropdb():
