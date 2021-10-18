@@ -29,6 +29,10 @@ def create_app(test_config=None):
     Bootstrap(app)
     db.init_app(app)
 
+    ##########
+    # ROUTES #
+    ##########
+
     @app.route("/")
     def index():
         projects = [
@@ -43,6 +47,23 @@ def create_app(test_config=None):
         ]
         return render_template('home.html', projects=projects)
     
+    @app.route("/project/")
+    @app.route("/project/<pid>")
+    def show_project(pid=None):
+        if pid is None:
+            flash("A valid project id is required for this page")
+            return render_template('base.html')
+        
+        project = {
+                'project_id': 1234,
+                'project_title': 'Hello World v1'
+            }
+        return render_template('project.html', project = project)
+
+    ##################
+    # Shell commands #
+    ##################
+    
     @app.cli.command('dropdb')
     def dropdb():
         from rc_bookmark_catcher import models
@@ -54,5 +75,8 @@ def create_app(test_config=None):
         from rc_bookmark_catcher import models
         click.echo('Initializing Database...')
         db.create_all()
+
+
+    ###########
 
     return app
