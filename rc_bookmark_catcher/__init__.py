@@ -1,6 +1,7 @@
 import os
 import click
 from flask import Flask, render_template, request, flash, current_app
+from flask import url_for, redirect
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 
@@ -13,7 +14,8 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         SQLALCHEMY_DATABASE_URI='postgresql://localhost/rcbc',
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        LOGGING_LEVEL='DEBUG'
+        LOGGING_LEVEL='DEBUG',
+        REDCAP_URL='https://redcap.nubic.northwestern.edu/api/'
     )
 
     if test_config is None:
@@ -35,30 +37,45 @@ def create_app(test_config=None):
 
     @app.route("/")
     def index():
-        projects = [
-            {
-                'project_id': 1234,
-                'project_title': 'Hello World v1'
-            },
-            {
-                'project_id': 3453,
-                'project_title': 'Hello COSMOS v2'
-            }
-        ]
-        return render_template('home.html', projects=projects)
+        from rc_bookmark_catcher.models import Project
+        myprojects = Project.query.all()
+        return render_template('home.html', projects=myprojects)
     
     @app.route("/project/")
     @app.route("/project/<pid>")
     def show_project(pid=None):
         if pid is None:
             flash("A valid project id is required for this page")
-            return render_template('base.html')
+            return redirect(url_for('index'))
+
+        from rc_bookmark_catcher.models import Project
+        myproject = Project.query.get(pid)
+        if myproject is None:
+            flash(f'Could not find pid = {pid}')
+            return redirect(url_for('index'))
+
+        return render_template('project.html', project = myproject)
+
+    @app.route("/project/new", methods = ['POST'])
+    def new_project():
+        from rc_bookmark_catcher.models import Project
+        from rc_bookmark_catcher.redcap import make_project_from_token
+        flash('Placeholder for the new page')
+        myapitoken = request.form.get('api_token', None)
+        if myapitoken is None:
+            flash('No API Token was in posted form')
+            redirect(url_for('index'))
         
-        project = {
-                'project_id': 1234,
-                'project_title': 'Hello World v1'
-            }
-        return render_template('project.html', project = project)
+        mycount = Project.query.filter(Project.api_token==myapitoken).count()
+        if True: 
+            flash(f'Cannot proceed; {mycount} projects already exist with this API Token')
+            redirect(url_for('index'))
+
+        myproject = make_project_from_token(myapitoken)
+        db.session.add( myproject )
+        db.session.commit()
+
+        return redirect(url_for('show_project', pid=myproject.project_id))
 
     ##################
     # Shell commands #

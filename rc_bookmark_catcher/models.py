@@ -7,6 +7,8 @@ class Project(db.Model):
 
     # Other attributes
     project_title = db.Column(db.String(128))
+    api_token = db.Column(db.String(128))
+
 
 class Instrument(db.Model):
 

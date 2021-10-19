@@ -2,6 +2,15 @@
 
 {% block content %}
 
+<div class="container">
+<form method="post" action="{{ url_for('new_project') }}">
+        <label for="apitoken">Paste API here to add a project</label>
+        <input type="text" placeholder="API Token" id="apitoken" name="api_token">
+        <button type="submit" class="btn btn-secondary">Add Project</button>
+</form>
+</div>
+
+<div class="container">
 <h1>Imported Projects</h1>
 
 <table class="table table-striped">
@@ -20,5 +29,7 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
+
 
 {% endblock %}
