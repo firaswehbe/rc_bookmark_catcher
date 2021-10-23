@@ -60,20 +60,25 @@ def create_app(test_config=None):
     def new_project():
         from rc_bookmark_catcher.models import Project
         from rc_bookmark_catcher.redcap import make_project_from_token
+        from rc_bookmark_catcher.redcap import load_instruments
         flash('Placeholder for the new page')
         myapitoken = request.form.get('api_token', None)
         if myapitoken is None:
             flash('No API Token was in posted form')
-            redirect(url_for('index'))
+            return redirect(url_for('index'))
         
         mycount = Project.query.filter(Project.api_token==myapitoken).count()
-        if True: 
+        if mycount > 0: 
             flash(f'Cannot proceed; {mycount} projects already exist with this API Token')
-            redirect(url_for('index'))
+            return redirect(url_for('index'))
 
-        myproject = make_project_from_token(myapitoken)
-        db.session.add( myproject )
-        db.session.commit()
+        try: 
+            myproject = make_project_from_token(myapitoken) 
+            db.session.add( myproject ) 
+            db.session.commit()
+        except RuntimeError as e:
+            flash(f'There was an error while using the API token to create a project: {e}')
+            return redirect(url_for('index'))
 
         return redirect(url_for('show_project', pid=myproject.project_id))
 
