@@ -30,11 +30,9 @@ def make_project_from_token( token ):
 
     return myproject
 
-def fetch_project_instruments( pid ):
-    # The pid needs to be in the database
-    myproject = models.Project.query.get( pid )
-    if myproject is None:
-        raise REDCapError(f'Cannot laod instruments because project_id [{pid}] is not present in the database')
+def fetch_project_instruments( myproject = None ):
+    if not isinstance(myproject, models.Project):
+        raise REDCapError(f'Cannot laod instruments because a Project object was not passed')
 
     mypayload = _payload_skel
     mypayload['content'] = 'instrument'
@@ -47,7 +45,7 @@ def fetch_project_instruments( pid ):
     myinstruments = list()
     for i in range(len(myrequestjson)):
         myinstruments.append( models.Instrument (
-            project_id = pid,
+            project_id = myproject.project_id,
             instrument_name = myrequestjson[i]['instrument_name'],
             instrument_label = myrequestjson[i]['instrument_label'],
             order_num = i
@@ -55,8 +53,27 @@ def fetch_project_instruments( pid ):
 
     return myinstruments
 
-    # TODO: Instantiate instruments objects based on their name and label
+def fetch_project_fields( myproject = None ):
+    if not isinstance(myproject, models.Project):
+        raise REDCapError(f'Cannot laod variables because a Project object was not passed')
 
-    # TODO: descend to variable level
+    mypayload = _payload_skel
+    mypayload['content'] = 'metadata'
+    mypayload['token'] = myproject.api_token
+    myrequest = requests.post(redcap_url, mypayload)
+    if not myrequest.ok:
+        raise REDCapError('REDCap request failed')
+    myrequestjson = json.loads(myrequest.text)
 
-    return myrequestjson
+    myvariables = list()
+    for i in range(len(myrequestjson)):
+        myvariables.append( models.Field (
+            project_id = myproject.project_id,
+            field_name = myrequestjson[i]['field_name'],
+            form_name = myrequestjson[i]['form_name'],
+            field_label = myrequestjson[i]['field_label'],
+            order_num = i
+        ))
+
+    return myvariables
+

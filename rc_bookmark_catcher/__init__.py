@@ -3,8 +3,8 @@ import click
 from flask import Flask, render_template, request, flash, current_app
 from flask import url_for, redirect
 from flask_bootstrap import Bootstrap
-from flask_sqlalchemy import SQLAlchemy
 
+from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 def create_app(test_config=None):
@@ -60,7 +60,7 @@ def create_app(test_config=None):
     def new_project():
         from rc_bookmark_catcher.models import Project
         from rc_bookmark_catcher.redcap import make_project_from_token
-        from rc_bookmark_catcher.redcap import load_instruments
+        from rc_bookmark_catcher.redcap import fetch_project_instruments
         flash('Placeholder for the new page')
         myapitoken = request.form.get('api_token', None)
         if myapitoken is None:
@@ -75,11 +75,19 @@ def create_app(test_config=None):
         try: 
             myproject = make_project_from_token(myapitoken) 
             db.session.add( myproject ) 
-            db.session.commit()
         except RuntimeError as e:
             flash(f'There was an error while using the API token to create a project: {e}')
             return redirect(url_for('index'))
 
+        try:
+            myinstruments = fetch_project_instruments( myproject )
+            db.session.add_all( myinstruments )
+        except RuntimeError as e:
+            flash(f'There was an error while building instruments for the project: {e}')
+            return redirect(url_for('index'))
+        
+        db.session.commit()
+        flash(f'Created Project [pid = {myproject.project_id}] - {myproject.project_title}')
         return redirect(url_for('show_project', pid=myproject.project_id))
 
     ##################
