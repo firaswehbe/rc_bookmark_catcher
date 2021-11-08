@@ -30,7 +30,7 @@ def make_project_from_token( token ):
 
     return myproject
 
-def fetch_project_instruments( myproject = None ):
+def fetch_project_instruments( myproject ):
     if not isinstance(myproject, models.Project):
         raise REDCapError(f'Cannot laod instruments because a Project object was not passed')
 
@@ -53,7 +53,7 @@ def fetch_project_instruments( myproject = None ):
 
     return myinstruments
 
-def fetch_project_fields( myproject = None ):
+def fetch_project_fields( myproject ):
     if not isinstance(myproject, models.Project):
         raise REDCapError(f'Cannot laod variables because a Project object was not passed')
 
