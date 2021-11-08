@@ -13,7 +13,7 @@ class Project(db.Model):
 
     # Relationships -- you have to use back_populates and not backref so you can have asymmetric cascades
     instruments = db.relationship('Instrument', back_populates='project', cascade = ['all', 'delete', 'delete-orphan'], order_by = 'Instrument.order_num')
-    variables = db.relationship('Field', back_populates='project', cascade = ['all', 'delete', 'delete-orphan'])
+    variables = db.relationship('Field', back_populates='project', cascade = ['all', 'delete', 'delete-orphan'], order_by = 'Field.order_num')
 
 
 class Instrument(db.Model):
@@ -35,7 +35,7 @@ class Instrument(db.Model):
     # Relationships -- you have to use back_populates and not backref so you can have asymmetric cascades
     # not sure how I got the overlaps arguments to work, did trial and error
     project = db.relationship('Project', back_populates = 'instruments', overlaps = 'instruments')
-    variables = db.relationship('Field', back_populates = 'instrument', overlaps = 'variables')
+    variables = db.relationship('Field', back_populates = 'instrument', overlaps = 'variables', order_by='Field.order_num')
 
 class Field(db.Model):
 
