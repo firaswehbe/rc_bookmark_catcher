@@ -10,12 +10,23 @@
         <h2>pid = {{ project.project_id }} </h2>
         <p>Instruments: {{ project.instruments|length }}; Variables: {{ project.variables|length }}</p>
     </div>
-    <div class="container">
-        <table class="table table-striped">
-            <tr>
-                <td>&nbsp;</td>
-            </tr>
-        </table>
+    <div class="container" id="accordion">
+        {% for myinstrument in project.instruments %}
+        <div class="card">
+            <div class="card-header" id="heading_1">
+                <button class="btn btn-link" data-toggle="collapse" data-target="#instrument_{{loop.index}}">{{myinstrument.instrument_label}}</button>
+            </div>
+            <div class="collapse" id="instrument_{{loop.index}}">
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for myvariable in myinstrument.variables %}
+                        <li class="list-group-item">{{myvariable.field_name}}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 
 

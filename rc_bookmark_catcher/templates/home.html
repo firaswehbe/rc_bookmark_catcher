@@ -18,6 +18,8 @@
         <tr>
             <th scope="col">pid</th>
             <th scope="col">title</th>
+            <th scope="col">Instruments</th>
+            <th scope="col">Variables</th>
         </tr>
     </thead>
     <tbody>
@@ -25,6 +27,8 @@
         <tr>
             <td><a href="{{ url_for('show_project', pid=project.project_id) }}">{{ project.project_id }}</a></td>
             <td>{{ project.project_title }}</td>
+            <td>{{ project.instruments | length }}</td>
+            <td>{{ project.variables | length }}</td>
         </tr>
         {% endfor %}
     </tbody>

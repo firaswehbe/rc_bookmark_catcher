@@ -85,6 +85,13 @@ def create_app(test_config=None):
         except RuntimeError as e:
             flash(f'There was an error while building instruments for the project: {e}')
             return redirect(url_for('index'))
+
+        try:
+            myvariables = fetch_project_instruments( myproject )
+            db.session.add_all( myvariables )
+        except RuntimeError as e:
+            flash(f'There was an error while importing variables for the project: {e}')
+            return redirect(url_for('index'))
         
         db.session.commit()
         flash(f'Created Project [pid = {myproject.project_id}] - {myproject.project_title}')
