@@ -60,3 +60,26 @@ class Field(db.Model):
     instrument = db.relationship('Instrument', back_populates = 'variables', overlaps = 'variables' )
     project = db.relationship('Project', back_populates = 'variables', overlaps = 'instrument,variables')
 
+class Template(db.Model):
+    # Primary Key
+    template_name = db.Column(db.String(128), nullable = False, primary_key = True)
+
+    # Other attributes
+    template_label = db.Column(db.Text)
+
+class Hov(db.Model):
+    # Primary Keys (Composite)
+    template_name = db.Column(db.String(128), nullable = False)
+    hov_name = db.Column(db.String(128), nullable = False)
+
+    # Other attributes
+    hov_variable = db.Column(db.String(128))
+    hov_observer = db.Column(db.String(128))
+    hov_date = db.Column(db.String(128))
+    hov_label = db.Column(db.Text)
+
+    # Constraints
+    __table_args__ = (
+        db.PrimaryKeyConstraint('template_name', 'hov_name'),
+    )
+
