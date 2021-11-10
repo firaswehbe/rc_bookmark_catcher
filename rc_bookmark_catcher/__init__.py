@@ -38,7 +38,7 @@ def create_app(test_config=None):
     @app.route("/")
     def index():
         from rc_bookmark_catcher.models import Project
-        myprojects = Project.query.all()
+        myprojects = Project.query.order_by(Project.project_id).all()
         return render_template('home.html', projects=myprojects)
     
     @app.route("/project/")
@@ -61,6 +61,7 @@ def create_app(test_config=None):
         from rc_bookmark_catcher.models import Project
         from rc_bookmark_catcher.redcap import make_project_from_token
         from rc_bookmark_catcher.redcap import fetch_project_instruments
+        from rc_bookmark_catcher.redcap import fetch_project_fields
         flash('Placeholder for the new page')
         myapitoken = request.form.get('api_token', None)
         if myapitoken is None:
@@ -73,7 +74,7 @@ def create_app(test_config=None):
             return redirect(url_for('index'))
 
         try: 
-            myproject = make_project_from_token(myapitoken) 
+            myproject = make_project_from_token( myapitoken ) 
             db.session.add( myproject ) 
         except RuntimeError as e:
             flash(f'There was an error while using the API token to create a project: {e}')
@@ -87,7 +88,7 @@ def create_app(test_config=None):
             return redirect(url_for('index'))
 
         try:
-            myvariables = fetch_project_instruments( myproject )
+            myvariables = fetch_project_fields( myproject )
             db.session.add_all( myvariables )
         except RuntimeError as e:
             flash(f'There was an error while importing variables for the project: {e}')
