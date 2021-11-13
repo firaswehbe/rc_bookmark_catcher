@@ -1,6 +1,7 @@
 # This file may be used to create an environment using:
 # $ conda create --name <env> --file <this file>
 # platform: osx-64
+blinker=1.4=pypi_0
 bootstrap-flask=1.8.0=pypi_0
 brotlipy=0.7.0=py39h9ed2024_1003
 ca-certificates=2021.9.30=hecd8cb5_1
@@ -11,6 +12,7 @@ click=8.0.1=pypi_0
 cryptography=3.4.8=py39h2fd3fbb_0
 dominate=2.6.0=pypi_0
 flask=2.0.1=pypi_0
+flask-debugtoolbar=0.11.0=pypi_0
 flask-sqlalchemy=2.5.1=pypi_0
 greenlet=1.1.2=pypi_0
 idna=3.2=pyhd3eb1b0_0

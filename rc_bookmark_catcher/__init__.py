@@ -3,9 +3,12 @@ import click
 from flask import Flask, render_template, request, flash, current_app
 from flask import url_for, redirect
 from flask_bootstrap import Bootstrap
+from flask_debugtoolbar import DebugToolbarExtension
 
 from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
+toolbar = DebugToolbarExtension()
+
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -30,16 +33,22 @@ def create_app(test_config=None):
 
     Bootstrap(app)
     db.init_app(app)
+    toolbar.init_app(app)
+
 
     ##########
     # ROUTES #
     ##########
+
+    # HOME
 
     @app.route("/")
     def index():
         from rc_bookmark_catcher.models import Project
         myprojects = Project.query.order_by(Project.project_id).all()
         return render_template('home.html', projects=myprojects)
+
+    # PROJECTS
     
     @app.route("/project/")
     @app.route("/project/<pid>")
@@ -84,19 +93,37 @@ def create_app(test_config=None):
             myinstruments = fetch_project_instruments( myproject )
             db.session.add_all( myinstruments )
         except RuntimeError as e:
-            flash(f'There was an error while building instruments for the project: {e}')
+            flash(f'There was an error while fetching instruments for the project: {e}')
             return redirect(url_for('index'))
 
         try:
             myvariables = fetch_project_fields( myproject )
             db.session.add_all( myvariables )
         except RuntimeError as e:
-            flash(f'There was an error while importing variables for the project: {e}')
+            flash(f'There was an error while fetching variables for the project: {e}')
             return redirect(url_for('index'))
         
         db.session.commit()
         flash(f'Created Project [pid = {myproject.project_id}] - {myproject.project_title}')
         return redirect(url_for('show_project', pid=myproject.project_id))
+
+    # TEMPLATES
+
+    @app.route('/template/')
+    @app.route('/template/<template_id>')
+    def show_template(template_id = None):
+        if template_id is None:
+            flash(f'A valid template id is required for this page')
+            return redirect(url_for('index'))
+
+        from rc_bookmark_catcher.models import Template
+        mytemplate = Template.query.get(template_id)
+        if mytemplate is None:
+            flash(f'Could not find Template with template_id = {template_id}')
+            #return redirect(url_for('index'))
+        
+        flash(f'Show page for {template_id}')
+        return render_template('template.html')
 
     ##################
     # Shell commands #
