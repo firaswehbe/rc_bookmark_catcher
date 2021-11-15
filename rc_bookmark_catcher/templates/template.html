@@ -2,8 +2,15 @@
 
 {% block content %}
 
-<pre>
-    nevermind
-</pre>
+<div class="container">
+    <div class="container">    
+        <h1>{{ template.template_name }} </h1>
+    </div>
+    <div class="container">
+        <h2>{{ template.template_label }} </h2>
+        <p>Variables: {{ template.variables|length }}</p>
+    </div>
+</div>
+
 
 {% endblock %}

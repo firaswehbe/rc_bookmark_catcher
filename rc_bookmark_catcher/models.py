@@ -10,10 +10,16 @@ class Project(db.Model):
     # Other attributes
     project_title = db.Column(db.String(128))
     api_token = db.Column(db.String(128))
+    template_name = db.Column(db.String(128))
+
+    __table_args__ = (
+        db.ForeignKeyConstraint(['template_name'], ['template.template_name']),
+    )
 
     # Relationships -- you have to use back_populates and not backref so you can have asymmetric cascades
     instruments = db.relationship('Instrument', back_populates='project', cascade = ['all', 'delete', 'delete-orphan'], order_by = 'Instrument.order_num')
     variables = db.relationship('Field', back_populates='project', cascade = ['all', 'delete', 'delete-orphan'], order_by = 'Field.order_num')
+    template = db.relationship('Template', back_populates='projects')
 
 
 class Instrument(db.Model):
@@ -67,6 +73,10 @@ class Template(db.Model):
     # Other attributes
     template_label = db.Column(db.Text)
 
+    # Relations
+    hovs = db.relationship('Hov', back_populates = 'template', cascade = ['all', 'delete', 'delete-orphan'], order_by = 'Hov.order_num')
+    projects = db.relationship('Project', back_populates = 'template', order_by = 'Project.project_id' )
+
 class Hov(db.Model):
     # Primary Keys (Composite)
     template_name = db.Column(db.String(128), nullable = False)
@@ -77,9 +87,14 @@ class Hov(db.Model):
     hov_observer = db.Column(db.String(128))
     hov_date = db.Column(db.String(128))
     hov_label = db.Column(db.Text)
+    order_num = db.Column(db.Integer)
 
     # Constraints
     __table_args__ = (
         db.PrimaryKeyConstraint('template_name', 'hov_name'),
+        db.ForeignKeyConstraint(['template_name'], ['template.template_name']),
     )
+
+    # Relations
+    template = db.relationship('Template', back_populates = 'hovs')
 

@@ -2,11 +2,13 @@ import os
 import click
 from flask import Flask, render_template, request, flash, current_app
 from flask import url_for, redirect
+
 from flask_bootstrap import Bootstrap
-from flask_debugtoolbar import DebugToolbarExtension
 
 from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
+
+from flask_debugtoolbar import DebugToolbarExtension
 toolbar = DebugToolbarExtension()
 
 
@@ -44,9 +46,10 @@ def create_app(test_config=None):
 
     @app.route("/")
     def index():
-        from rc_bookmark_catcher.models import Project
+        from rc_bookmark_catcher.models import Project, Template
         myprojects = Project.query.order_by(Project.project_id).all()
-        return render_template('home.html', projects=myprojects)
+        mytemplates = Template.query.order_by(Template.template_name).all()
+        return render_template('home.html', projects = myprojects, templates = mytemplates )
 
     # PROJECTS
     
@@ -110,20 +113,19 @@ def create_app(test_config=None):
     # TEMPLATES
 
     @app.route('/template/')
-    @app.route('/template/<template_id>')
-    def show_template(template_id = None):
-        if template_id is None:
-            flash(f'A valid template id is required for this page')
+    @app.route('/template/<template_name>')
+    def show_template(template_name = None):
+        if template_name is None:
+            flash(f'A valid template name is required for this page')
             return redirect(url_for('index'))
 
         from rc_bookmark_catcher.models import Template
-        mytemplate = Template.query.get(template_id)
+        mytemplate = Template.query.get(template_name)
         if mytemplate is None:
-            flash(f'Could not find Template with template_id = {template_id}')
-            #return redirect(url_for('index'))
+            flash(f'Could not find Template with template_name = {template_name}')
+            return redirect(url_for('index'))
         
-        flash(f'Show page for {template_id}')
-        return render_template('template.html')
+        return render_template('template.html', template = mytemplate)
 
     ##################
     # Shell commands #

@@ -12,7 +12,6 @@
 
 <div class="container">
 <h1>Imported Projects</h1>
-
 <table class="table table-striped">
     <thead>
         <tr>
@@ -35,5 +34,29 @@
 </table>
 </div>
 
+<div class="container">
+<h1>Templates</h1>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Label</th>
+            <th scope="col">HOVs</th>
+            <th scope="col">Projects</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for template in templates %}
+        <tr>
+            <td><a href="{{ url_for('show_template', template_name = template.template_name) }}">{{ template.template_name }}</a></td>
+            <td>{{ template.template_label }}</td>
+            <td>{{ template.hovs | length }}</td>
+            <td>{{ template.projects | length }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+</div>
 
 {% endblock %}
