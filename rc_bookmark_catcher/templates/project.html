@@ -3,11 +3,12 @@
 {% block content %}
 
 <div class="container">
-    <div class="container">    
-        <h1>{{ project.project_title }} </h1>
-    </div>
     <div class="container">
-        <h2>pid = {{ project.project_id }} </h2>
+        <h2>{{project.project_title}} <small><mark>pid {{project.pid}}</mark></small></h2>
+        <p>API Token used: <mark>{{project.api_token | truncate(12,False,"****")}}</mark></p>
+        <p>Is longitudinal? <mark>{{"yes" if project.is_longitudinal else "no"}}</mark></p>
+        <p>Has repeating instruments or events? <mark>{{"yes" if project.has_repeating_instruments_or_events else "no"}}</mark></p>
+        <p>Surveys enabled? <mark>{{"yes" if project.surveys_enabled}}</mark></p>
         <p>Instruments: {{ project.instruments|length }}; Variables: {{ project.variables|length }}</p>
     </div>
     <div class="container" id="accordion">

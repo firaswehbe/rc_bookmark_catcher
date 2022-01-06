@@ -1,6 +1,6 @@
 import os
 import click
-from flask import Flask, render_template, request, flash, current_app
+from flask import Flask, render_template, request, flash, current_app, abort
 from flask import url_for, redirect
 
 from flask_bootstrap import Bootstrap
@@ -44,15 +44,17 @@ def create_app(test_config=None):
 
     # HOME
 
+    # TODO: REFACTOR
     @app.route("/")
     def index():
         from rc_bookmark_catcher.models import Project, Template
-        myprojects = Project.query.order_by(Project.project_id).all()
+        myprojects = Project.query.order_by(Project.pid).all()
         mytemplates = Template.query.order_by(Template.template_name).all()
         return render_template('home.html', projects = myprojects, templates = mytemplates )
 
     # PROJECTS
     
+    # TODO: REFACTOR
     @app.route("/project/")
     @app.route("/project/<pid>")
     def show_project(pid=None):
@@ -68,50 +70,65 @@ def create_app(test_config=None):
 
         return render_template('project.html', project = myproject)
 
-    @app.route("/project/new", methods = ['POST'])
+    # TODO: REFACTORED NEW PROJECT PAGES NEED TO PUT FIELDS AND INSTRUMENTS BACK IN
+    @app.route("/project/new")
     def new_project():
-        from rc_bookmark_catcher.models import Project
-        from rc_bookmark_catcher.redcap import make_project_from_token
-        from rc_bookmark_catcher.redcap import fetch_project_instruments
-        from rc_bookmark_catcher.redcap import fetch_project_fields
-        flash('Placeholder for the new page')
-        myapitoken = request.form.get('api_token', None)
-        if myapitoken is None:
-            flash('No API Token was in posted form')
-            return redirect(url_for('index'))
-        
-        mycount = Project.query.filter(Project.api_token==myapitoken).count()
+        return render_template('newproject.html')
+
+    @app.route('/project/add_confirm', methods = ['post'])
+    def add_confirm_project():
+        mystu = request.form.get('stu', None)
+        mytoken = request.form.get('api_token', None)
+
+        if not mystu or not mytoken:
+            flash('Need both an STU # and an API TOKEN','error')
+            return redirect(request.referrer)
+
+        from rc_bookmark_catcher import redcap,models
+
+        # Check if the API token was already used. To enforce that project can only be associated with 1 STU#
+        mycount = models.Project.query.filter(models.Project.api_token==mytoken).count()
         if mycount > 0: 
-            flash(f'Cannot proceed; {mycount} projects already exist with this API Token')
-            return redirect(url_for('index'))
+            flash(f'Cannot proceed; {mycount} projects already exist with this API Token', 'error')
+            return redirect(request.referrer)
+        
+        # Create a project object via REDCap call and populate with fetched attributes AND the STU#
+        try:
+            myproject = redcap.make_project_from_token( mytoken, mystu )
+        except RuntimeError as e:
+            flash(f'There was an error while using the API token to create a project: {e}', 'error')
+            return redirect(request.referrer)
+
+        flash('Retrieved a project from REDCap')
+        return render_template('addconfirmproject.html', project = myproject)
+
+    @app.route("/project/add", methods = ['post'])
+    def add_project():
+        from rc_bookmark_catcher import models
+        myproject = models.Project(
+            pid = request.form.get('pid', None),
+            stu = request.form.get('stu', None),
+            project_title = request.form.get('project_title', None),
+            api_token = request.form.get('api_token', None),
+            is_longitudinal = request.form.get('is_longitudinal', None),
+            has_repeating_instruments_or_events = request.form.get('has_repeating_instruments_or_events', None),
+            surveys_enabled = request.form.get('surveys_enabled', None)
+        )
 
         try: 
-            myproject = make_project_from_token( myapitoken ) 
-            db.session.add( myproject ) 
+            db.session.add(myproject) 
+            db.session.commit()
         except RuntimeError as e:
-            flash(f'There was an error while using the API token to create a project: {e}')
+            flash(f'Could not commit project {myproject.pid} into database','error')
             return redirect(url_for('index'))
 
-        try:
-            myinstruments = fetch_project_instruments( myproject )
-            db.session.add_all( myinstruments )
-        except RuntimeError as e:
-            flash(f'There was an error while fetching instruments for the project: {e}')
-            return redirect(url_for('index'))
+        flash(f'Added project (pid={myproject.pid}, stu={myproject.stu}) to DB')
+        return redirect(url_for('show_project', pid=myproject.pid))
 
-        try:
-            myvariables = fetch_project_fields( myproject )
-            db.session.add_all( myvariables )
-        except RuntimeError as e:
-            flash(f'There was an error while fetching variables for the project: {e}')
-            return redirect(url_for('index'))
-        
-        db.session.commit()
-        flash(f'Created Project [pid = {myproject.project_id}] - {myproject.project_title}')
-        return redirect(url_for('show_project', pid=myproject.project_id))
 
     # TEMPLATES
 
+    # TODO: REFACTOR
     @app.route('/template/')
     @app.route('/template/<template_name>')
     def show_template(template_name = None):
@@ -126,6 +143,51 @@ def create_app(test_config=None):
             return redirect(url_for('index'))
         
         return render_template('template.html', template = mytemplate)
+
+    #########################
+    # REDCap Landing Routes #
+    #########################
+
+    @app.route('/redcap/push/s', methods = ['get'])
+    def redcap_simple():
+        # We will probably not use this. Kept here as demo of what simple link does.
+        return render_template('simplebookmark.html')
+
+    @app.route('/redcap/push/a', methods = ['post'])
+    def redcap_advanced():
+        from rc_bookmark_catcher import redcap,models
+        myauthkey = request.form.get('authkey', None)
+
+        # Send a 401 Unauthorized if the token is a dud 
+        if myauthkey is None:
+            abort(401)
+        try:
+            my_advanced_link_info = redcap.fetch_advanced_link_info(myauthkey)
+        except RuntimeError as e:
+            abort(401)
+
+        # RECORD and EVENT are appended to the URL not part of the authkey-mediated info
+        my_advanced_link_info['get_record'] = request.args.get('record', None)
+        my_advanced_link_info['get_event'] = request.args.get('event', None)
+
+        # Check if the project referenced is registered in the system and associated with a study
+        # If not registered then Send a 401 Unauthorized error or recover gracefully in CTMS
+        myproject = db.session.execute( db.select(models.Project).where(models.Project.pid == my_advanced_link_info['project_id']) ).scalar()
+        if myproject is None:
+            abort(401)
+
+        # Should probably kick them out if the username (i.e. netid) is not allowed in the study
+        # def check_apl_or_something_in_CTMS( myresponse['username'], myproject.stu ) --> True|False
+        # (Not done here)
+
+        if my_advanced_link_info['get_record'] is None:
+            flash('did not pass a record id, no further action taken to fetch records', 'warning')
+            myrecords = None
+        else:
+            myrecords = redcap.fetch_advanced_link_records(myproject, my_advanced_link_info)
+
+        return render_template('advanced_landing_select.html', redcap_response = my_advanced_link_info, redcap_project = myproject, redcap_records = myrecords)
+
 
     ##################
     # Shell commands #

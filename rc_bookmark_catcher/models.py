@@ -3,29 +3,26 @@ from . import db
 
 
 class Project(db.Model):
-    
     # Primary Key
-    project_id = db.Column(db.Integer, primary_key=True,nullable=False, autoincrement=False)
+    pid = db.Column(db.Integer, primary_key=True,nullable=False, autoincrement=False)
 
     # Other attributes
-    project_title = db.Column(db.String(128))
+    project_title = db.Column(db.String(256))
+    stu = db.Column(db.String(128))
     api_token = db.Column(db.String(128))
-    template_name = db.Column(db.String(128))
-
-    __table_args__ = (
-        db.ForeignKeyConstraint(['template_name'], ['template.template_name']),
-    )
+    is_longitudinal = db.Column(db.Integer)
+    has_repeating_instruments_or_events = db.Column(db.Integer)
+    surveys_enabled = db.Column(db.Integer)
 
     # Relationships -- you have to use back_populates and not backref so you can have asymmetric cascades
-    instruments = db.relationship('Instrument', back_populates='project', cascade = ['all', 'delete', 'delete-orphan'], order_by = 'Instrument.order_num')
-    variables = db.relationship('Field', back_populates='project', cascade = ['all', 'delete', 'delete-orphan'], order_by = 'Field.order_num')
-    template = db.relationship('Template', back_populates='projects')
+    instruments = db.relationship('Instrument', back_populates='project', cascade = ['all', 'delete', 'delete-orphan'], order_by = 'Instrument.instrument_label')
+
 
 
 class Instrument(db.Model):
 
     # Primary Keys (Composite)
-    project_id = db.Column(db.Integer, nullable=False )
+    pid = db.Column(db.Integer, nullable=False )
     instrument_name = db.Column(db.String(128), nullable=False)
 
     # Other attributes
@@ -34,14 +31,14 @@ class Instrument(db.Model):
 
     # Constraints
     __table_args__ = (
-        db.PrimaryKeyConstraint('project_id','instrument_name'),
-        db.ForeignKeyConstraint(['project_id'], ['project.project_id']),
+        db.PrimaryKeyConstraint('pid','instrument_name'),
+        db.ForeignKeyConstraint(['pid'], ['project.pid']),
     )
 
     # Relationships -- you have to use back_populates and not backref so you can have asymmetric cascades
     # not sure how I got the overlaps arguments to work, did trial and error
     project = db.relationship('Project', back_populates = 'instruments', overlaps = 'instruments')
-    variables = db.relationship('Field', back_populates = 'instrument', overlaps = 'variables', order_by='Field.order_num')
+    #variables = db.relationship('Field', back_populates = 'instrument', overlaps = 'variables', order_by='Field.order_num')
 
 class Field(db.Model):
 
@@ -57,14 +54,14 @@ class Field(db.Model):
     # Constraints
     __table_args__ = (
         db.PrimaryKeyConstraint('project_id', 'field_name'),
-        db.ForeignKeyConstraint(['project_id'], ['project.project_id']),
-        db.ForeignKeyConstraint(['project_id', 'form_name'], ['instrument.project_id','instrument.instrument_name']),
+        db.ForeignKeyConstraint(['project_id'], ['project.pid']),
+        db.ForeignKeyConstraint(['project_id', 'form_name'], ['instrument.pid','instrument.instrument_name']),
     )
 
     # Relations -- you have to use back_populates and not backref so you can have asymmetric cascades
     # not sure how I got the overlaps arguments to work, did trial and error
-    instrument = db.relationship('Instrument', back_populates = 'variables', overlaps = 'variables' )
-    project = db.relationship('Project', back_populates = 'variables', overlaps = 'instrument,variables')
+    #instrument = db.relationship('Instrument', back_populates = 'variables', overlaps = 'variables' )
+    #project = db.relationship('Project', back_populates = 'variables', overlaps = 'instrument,variables')
 
 class Template(db.Model):
     # Primary Key
@@ -74,8 +71,8 @@ class Template(db.Model):
     template_label = db.Column(db.Text)
 
     # Relations
-    hovs = db.relationship('Hov', back_populates = 'template', cascade = ['all', 'delete', 'delete-orphan'], order_by = 'Hov.order_num')
-    projects = db.relationship('Project', back_populates = 'template', order_by = 'Project.project_id' )
+    #hovs = db.relationship('Hov', back_populates = 'template', cascade = ['all', 'delete', 'delete-orphan'], order_by = 'Hov.order_num')
+    #projects = db.relationship('Project', back_populates = 'template', order_by = 'Project.project_id' )
 
 class Hov(db.Model):
     # Primary Keys (Composite)
@@ -96,5 +93,4 @@ class Hov(db.Model):
     )
 
     # Relations
-    template = db.relationship('Template', back_populates = 'hovs')
-
+    #template = db.relationship('Template', back_populates = 'hovs')
