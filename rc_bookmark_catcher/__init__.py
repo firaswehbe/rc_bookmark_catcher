@@ -186,7 +186,7 @@ def create_app(test_config=None):
         else:
             myrecords = redcap.fetch_advanced_link_records(myproject, my_advanced_link_info)
 
-        return render_template('advanced_landing_select.html', redcap_response = my_advanced_link_info, redcap_project = myproject, redcap_records = myrecords)
+        return render_template('advland_instrument_select.html', redcap_response = my_advanced_link_info, redcap_project = myproject, redcap_records = myrecords)
 
 
     ##################
