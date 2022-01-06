@@ -1,36 +1,53 @@
 {% extends "base.html" %}
 
+{% block scripts %}
+{{super()}}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#instrument_name').select2({
+            data: {{select2_instrument_array|tojson}},
+            allowClear: true,
+            debug:true,
+            placeholder:"select your instrument"
+        });
+    });
+</script>
+{% endblock %}
+
+
 {% block content %}
 
 <div class="container">
-    <div class="container"><h1>You clicked on an <mark>advanced external link</mark> in REDCap</h1></div>
-    <div class="container">
-        <div class="row">
-            <div class="col"><strong>Here is what we received from REDCap via <code>authkey</code> exchange:</strong></div>
-        </div>
-        <div class="row">
-            <div class="col">callback_url = <code>{{redcap_response['callback_url'] | urlize}}</code></div>
-        </div>
-        <div class="row">
-            <div class="col">project_id = <code>{{redcap_response['project_id']}}</code></div>
-            <div class="col">username = <code>{{redcap_response['username']}}</code></div>
-            <div class="col">data_access_group_id = <code>{{redcap_response['data_access_group_id'] if redcap_response['data_access_group_id'] else 'None'}}</code></div>
-            <div class="col">data_access_group_name = <code>{{redcap_response['data_access_group_name'] if redcap_response['data_access_group_name'] else 'None'}}</code></div>
-        </div>
-        <div class="row">
-            <div class="col"><strong>Here is what we received from REDCap via <code>[GET]</code> method from the URL:</strong></div>
-        </div>
-        <div class="row">
-            <div class="col">record = <code>{{redcap_response['get_record'] if redcap_response['get_record'] else 'None'}}</code></div>
-            <div class="col">event = <code>{{redcap_response['get_event'] if redcap_response['get_event'] else 'None'}}</code></div>
-        </div>
-        <div class="row">
-            <div class="col"><strong>Here are the recorde we fetched from REDCap based on the information above:</strong></div>
-        </div>
-        <div class="row">
-            <div class="col"><pre>{{redcap_records | pprint}}</pre></div>
-        </div>
+
+<div class="container">
+    <div class="row">
+        <div class="col">project: <strong>{{redcap_project.project_title}} <code>{{redcap_project.pid}}</code></strong></div>
+    </div>
+    <div class="row">
+        <div class="col">user: <strong>{{redcap_response.username}}</strong></div>
+    </div>
+    <div class="row">
+        <div class="col">participant: <strong>{{person['first_name']}} {{person['last_name']}}</strong></div>
+        <div class="col">nacc id: <strong><code>{{person['nacc_id']}}</code></strong></div>
+        <div class="col">ripple id: <strong><code>{{person['record_id']}}</code></strong></div>
     </div>
 </div>
 
+<div class="container">
+    <div class="row"><div class="col">
+    <form method="post" action="{{ url_for('show_instrument') }}">
+        <input type="hidden" id="pid" name="pid" value="{{redcap_project.pid}}">
+        <div class="form-group">
+            <label for="instrument_name">Pick the instrument to view HOVs: </label>
+            <select class="form-control" id="instrument_name" name="instrument_name"></select>
+        </div>
+        <button type="submit" class="btn btn-secondary">Select</button>
+    </form>
+    </div></div>
+</div>
+
+
+</div>
 {% endblock %}

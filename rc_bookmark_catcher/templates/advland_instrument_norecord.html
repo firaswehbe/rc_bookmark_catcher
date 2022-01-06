@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+<div class="container">
+    <div class="row">
+        <div class="col">project: <strong>{{redcap_project.project_title}}</strong> <code>{{redcap_project.pid}}</code></div>
+    </div>
+    <div class="row">
+        <div class="col">user: <strong>{{redcap_response.username}}</strong></div>
+    </div>
+
+</div>
+</div>
+{% endblock %}

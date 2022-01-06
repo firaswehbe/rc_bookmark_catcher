@@ -181,12 +181,24 @@ def create_app(test_config=None):
         # (Not done here)
 
         if my_advanced_link_info['get_record'] is None:
-            flash('did not pass a record id, no further action taken to fetch records', 'warning')
-            myrecords = None
+            flash('The link was not clicked from within a record. No further actions can be taken to fetch records', 'warning')
+            return render_template('advland_instrument_norecord.html', redcap_response = my_advanced_link_info, redcap_project = myproject )
         else:
-            myrecords = redcap.fetch_advanced_link_records(myproject, my_advanced_link_info)
+            #myrecords = redcap.fetch_advanced_link_records(myproject, my_advanced_link_info)
+            myperson = redcap.fetch_advanced_link_person(myproject, my_advanced_link_info)
+            myselect2_instrument_array = redcap.fetch_project_instruments_as_select2(myproject)
 
-        return render_template('advland_instrument_select.html', redcap_response = my_advanced_link_info, redcap_project = myproject, redcap_records = myrecords)
+        return render_template('advland_instrument_select.html', 
+            redcap_response = my_advanced_link_info, 
+            redcap_project = myproject, 
+            person = myperson,
+            select2_instrument_array = myselect2_instrument_array
+            )
+
+    @app.route('/redcap/instrumentconfirm', methods=['post'])
+    def show_instrument():
+        flash('There was an error loading HOV mappings for this instrument', 'error')
+        return render_template('base.html')
 
 
     ##################

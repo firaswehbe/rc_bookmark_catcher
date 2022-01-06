@@ -10,7 +10,6 @@ class REDCapError(RuntimeError):
     """REDCap connection related errors"""
     pass
 
-#TODO: REFACTOR
 def make_project_from_token( token,stu ):
     mypayload = dict( format = 'json')
     mypayload['content'] = 'project'
@@ -57,6 +56,30 @@ def fetch_project_instruments( myproject ):
         ))
 
     return myinstruments
+
+def fetch_project_instruments_as_select2( project ):
+    '''
+    For details on the REDCap API methods called in this function see:
+    * https://redcap.nubic.northwestern.edu/redcap/api/help/?content=exp_instr 
+    '''
+    if not isinstance(project, models.Project):
+        raise REDCapError(f'Cannot laod instruments because a Project object was not passed')
+
+    mypayload = dict( format = 'json' )
+    mypayload['content'] = 'instrument'
+    mypayload['token'] = project.api_token
+    myrequest = requests.post(redcap_url, mypayload)
+    if not myrequest.ok:
+        raise REDCapError('REDCap request failed')
+    myrequestjson = json.loads(myrequest.text)
+    select2_instrument_array = list()
+    select2_instrument_array.append( dict(id='',text='')) #In single select2 you need first option to be blank to show the placeholder text
+    for x in myrequestjson:
+        select2_instrument_array.append( dict(
+            id = x['instrument_name'],
+            text = x['instrument_label']
+        ))
+    return select2_instrument_array
 
 #TODO: REFACTOR -- make select2
 def fetch_project_fields( myproject ):
@@ -118,5 +141,23 @@ def fetch_advanced_link_records( project, advancedlinkinfo ):
 
     return myresponsejson
 
-
+def fetch_advanced_link_person( project, advancedlinkinfo ):
+    if not isinstance(project, models.Project):
+        raise REDCapError(f'Cannot laod instruments because a Project object was not passed')
+    mypayload = dict( format = 'json' )
+    mypayload['content'] = 'record'
+    mypayload['token'] = project.api_token
+    if advancedlinkinfo.get( 'get_record', None) is not None: 
+        mypayload['records[0]'] = advancedlinkinfo['get_record']
+    
+    myresponse = requests.post(redcap_url, mypayload)
+    if not myresponse.ok:
+        raise REDCapError('Could not fetch records associated with this project and key')
+    myresponsejson = json.loads(myresponse.text)
+    myperson = dict(
+        nacc_id = myresponsejson[0]['nacc_id'], 
+        first_name = myresponsejson[0]['first_name_stub'], 
+        last_name = myresponsejson[0]['last_name_stub'], 
+        record_id = advancedlinkinfo['get_record'])
+    return myperson
 
